@@ -1,0 +1,40 @@
+name: Autograding Tests
+'on':
+- push
+- repository_dispatch
+permissions:
+  checks: write
+  actions: read
+  contents: read
+jobs:
+  run-autograding-tests:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-classroom[bot]'
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: testHelloWorld
+      id: testhelloworld
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testHelloWorld
+        setup-command: pip install pytest
+        command: pytest test_lab1.py::test_hello_world
+        timeout: 1
+        max-score: 50
+    - name: testInputOutput
+      id: testinputoutput
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: testInputOutput
+        setup-command: pip install pytest
+        command: pytest test_lab1.py::test_input_output
+        timeout: 1
+        max-score: 50
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        TESTHELLOWORLD_RESULTS: "${{steps.testhelloworld.outputs.result}}"
+        TESTINPUTOUTPUT_RESULTS: "${{steps.testinputoutput.outputs.result}}"
+      with:
+        runners: testhelloworld,testinputoutput
